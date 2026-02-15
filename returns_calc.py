@@ -25,6 +25,6 @@ def calculate_cagr(prices):
 
 def annualized_returns(returns):
     total_growth = (1+returns).prod()
-    n_days = len(returns)
+    n_days = returns.count()
     ann_returns = total_growth ** (252/n_days)-1
     return ann_returns

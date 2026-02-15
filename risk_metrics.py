@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-
+from returns_calc import *
 def calculate_volatility(returns,annualize=True,trading_days=252):
     volatility = returns.std().item()
     if annualize:
@@ -8,19 +8,24 @@ def calculate_volatility(returns,annualize=True,trading_days=252):
         return annual_vol
     return volatility
 
-def calculate_sharpe_ratio (returns):
-    annual_returns = 
-# from data_loader import download_stock_data
-# from returns_calc import calculate_returns
+def calculate_sharpe_ratio (returns,risk_free_rate = 0.065,trading_days=252):
+    annual_returns = annualized_returns(returns)
+    annual_volatility = calculate_volatility(returns,annualize=True)
+    excess_return = annual_returns - risk_free_rate
+    sharpe_ratio = excess_return/annual_volatility
+    return sharpe_ratio
 
-# df = download_stock_data('RELIANCE.NS', period='1y')
-# prices = df['Close'].squeeze()
-# returns = calculate_returns(prices)
+def calculate_sortino_ratio(returns,risk_free_rate = 0.065,trading_days=252):
+    annual_returns = annualized_returns(returns)
+    excess_return = annual_returns-risk_free_rate
+    negative_returns = returns[returns<0].dropna()
+    negative_volatility = calculate_volatility(negative_returns)
+    sortino_ratio = excess_return/negative_volatility
+    return sortino_ratio
 
-# # Test both daily and annual
-# daily_vol = calculate_volatility(returns, annualize=False)
-# annual_vol = calculate_volatility(returns, annualize=True)
-
-# print(f"Daily Volatility: {daily_vol:.4f} ({daily_vol*100:.2f}%)")
-# print(f"Annual Volatility: {annual_vol:.4f} ({annual_vol*100:.2f}%)")
-# print(f"Ratio: {annual_vol/daily_vol:.2f} (should be close to 15.87)")
+def calculate_max_drawdown(returns):
+    cum_returns = calculate_cumulative_returns(returns)
+    running_max = cum_returns.cummax()
+    drawdown = (cum_returns - running_max)/(1+running_max)
+    max_dd = drawdown.min()
+    return max_dd
