@@ -199,7 +199,6 @@ Make sure these files are in the same directory:
 **Error: "No data downloaded"**
 - Check ticker symbols are correct (use .NS for NSE, .BO for BSE)
 - Verify internet connection
-- Try a longer time period
 
 **Error: "Insufficient aligned data"**
 - Need at least 60 trading days
@@ -209,16 +208,6 @@ Make sure these files are in the same directory:
 **Rolling CAGR not showing**
 - Needs at least 252 trading days (1 year)
 - Select a longer analysis period (2y or 5y)
-
-## 📝 Analysis Flow
-
-1. Upload `portfolio.csv`
-2. Select benchmark (default: ^NSEI for Indian market)
-3. Choose period (recommend 1y or 2y for comprehensive analysis)
-4. Click "🚀 Run Analysis"
-5. Wait for data download and calculation (~30 seconds)
-6. Explore results section by section
-7. Download JSON for record-keeping
 
 
 ## 🔄 Updates
