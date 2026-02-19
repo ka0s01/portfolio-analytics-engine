@@ -15,13 +15,6 @@ def calculate_sharpe_ratio (returns,risk_free_rate = 0.065,trading_days=252):
     sharpe_ratio = excess_return/annual_volatility
     return sharpe_ratio
 
-def calculate_sortino_ratio(returns,risk_free_rate = 0.065,trading_days=252):
-    annual_returns = annualized_returns(returns)
-    excess_return = annual_returns-risk_free_rate
-    negative_returns = returns[returns<0].dropna()
-    negative_volatility = calculate_volatility(negative_returns)
-    sortino_ratio = excess_return/negative_volatility
-    return sortino_ratio
 
 def calculate_max_drawdown(returns):
     cum_returns = calculate_cumulative_returns(returns)
@@ -29,3 +22,17 @@ def calculate_max_drawdown(returns):
     drawdown = (cum_returns - running_max)/(1+running_max)
     max_dd = drawdown.min()
     return max_dd
+
+
+def calculate_downside_deviation(returns,annualize=True,trading_days=252):
+    negative_returns = returns[returns<0].dropna()
+    negative_volatility = calculate_volatility(negative_returns,annualize=annualize)
+    return negative_volatility
+
+
+def calculate_sortino_ratio(returns,risk_free_rate = 0.065,trading_days=252):
+    annual_returns = annualized_returns(returns)
+    excess_return = annual_returns-risk_free_rate
+    downside_deviation = calculate_downside_deviation(returns)
+    sortino_ratio = excess_return/downside_deviation
+    return sortino_ratio

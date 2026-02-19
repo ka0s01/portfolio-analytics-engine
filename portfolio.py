@@ -259,7 +259,58 @@ class Portfolio:
         print("=" * 60)
         
         print()
+    def display_risk_comparison(self, risk_free_rate=0.065):
+        
+        if self.benchmark_returns is None:
+            print("No benchmark data available")
+            return
+        
+        print("\n" + "=" * 60)
+        print("RISK COMPARISON")
+        print("=" * 60)
+        
+        from risk_metrics import (
+            calculate_volatility,
+            calculate_max_drawdown,
+            calculate_sharpe_ratio,
+            calculate_downside_deviation
+        )
+        
+        # Calculate metrics
+        portfolio_vol = calculate_volatility(self.portfolio_returns)
+        market_vol = calculate_volatility(self.benchmark_returns)
+        relative_vol = portfolio_vol / market_vol
+        
+        portfolio_dd = calculate_max_drawdown(self.portfolio_returns)
+        market_dd = calculate_max_drawdown(self.benchmark_returns)
+        relative_dd = portfolio_dd / market_dd
+        
+        portfolio_sharpe = calculate_sharpe_ratio(self.portfolio_returns, risk_free_rate)
+        market_sharpe = calculate_sharpe_ratio(self.benchmark_returns, risk_free_rate)
+        
+        portfolio_downside = calculate_downside_deviation(self.portfolio_returns)
+        market_downside = calculate_downside_deviation(self.benchmark_returns)
+        
+        # Display
+        print("\nVolatility:")
+        print(f"  Portfolio:     {portfolio_vol:>10.2%}")
+        print(f"  Market:        {market_vol:>10.2%}")
+        print(f"  Relative:      {relative_vol:>10.2f}x")
+        
+        print("\nMaximum Drawdown:")
+        print(f"  Portfolio:     {portfolio_dd:>10.2%}")
+        print(f"  Market:        {market_dd:>10.2%}")
+        print(f"  Relative:      {relative_dd:>10.2f}x")
+        
+        print("\nSharpe Ratio:")
+        print(f"  Portfolio:     {portfolio_sharpe:>10.3f}")
+        print(f"  Market:        {market_sharpe:>10.3f}")
+        
+        print("\nDownside Deviation:")
+        print(f"  Portfolio:     {portfolio_downside:>10.2%}")
+        print(f"  Market:        {market_downside:>10.2%}")
     
+        print("=" * 60)
     
     def analyze(self, period='1y', risk_free_rate=0.065):
         """Run complete portfolio analysis with data validation."""
@@ -286,6 +337,10 @@ class Portfolio:
         print("\nCalculating market metrics...")
         print()
         self.display_market_comparison()
+
+        
+        print()
+        self.display_risk_comparison()
         
         return metrics
 
