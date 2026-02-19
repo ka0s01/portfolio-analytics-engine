@@ -95,22 +95,6 @@ This tool **does not**:
 - Compute tax obligations or cost basis
 - Track your actual cash invested vs current value
 
-### ⚠️ NOT Financial Advice
-This tool **does not**:
-- Tell you if your portfolio is "good" or "bad"
-- Recommend specific allocation changes
-- Suggest optimal portfolio construction
-- Provide personalized investment advice
-
-
-### ⚠️ NOT a Real-Time Trading System
-This tool **does not**:
-- Provide live/intraday data
-- Support algorithmic trading
-- Execute trades
-- Monitor positions in real-time
-
-**Why:** It uses historical daily data from Yahoo Finance for analysis, not real-time market feeds.
 
 ## Use Cases
 
@@ -120,7 +104,6 @@ Examples:
 - "How would a 50-30-20 split between these three stocks have performed?"
 - "Is my current allocation better than equal weights?"
 - "How does a tech-heavy portfolio compare to a diversified one?"
-
 
 ### ✅ Compare Strategies
 Upload different portfolio files to compare:
