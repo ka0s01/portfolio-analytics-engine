@@ -36,3 +36,62 @@ def calculate_sortino_ratio(returns,risk_free_rate = 0.065,trading_days=252):
     downside_deviation = calculate_downside_deviation(returns)
     sortino_ratio = excess_return/downside_deviation
     return sortino_ratio
+
+
+
+def calculate_rolling_cagr(returns, window=252):
+    """
+    Calculate rolling CAGR over a specified window.
+    
+    Args:
+        returns: Series of daily returns
+        window: Rolling window size in days (default 252 = 1 year)
+        
+    Returns:
+        Series of rolling CAGR values
+    """
+    def cagr_for_window(window_returns):
+        total_growth = (1 + window_returns).prod()
+        n_days = len(window_returns)
+        if n_days == 0:
+            return np.nan
+        cagr = total_growth ** (252 / n_days) - 1
+        return cagr
+    
+    rolling_cagr = returns.rolling(window=window).apply(cagr_for_window, raw=False)
+    return rolling_cagr
+
+
+def calculate_win_rate(returns):
+    """
+    Calculate the percentage of positive return days.
+    
+    Returns:
+        Float: win rate as a decimal (e.g., 0.55 for 55%)
+    """
+    positive_days = (returns > 0).sum()
+    total_days = len(returns)
+    return positive_days / total_days
+
+
+def calculate_avg_gain_loss(returns):
+    """
+    Calculate average gain on winning days vs average loss on losing days.
+    
+    Returns:
+        Dictionary with 'avg_gain', 'avg_loss', and 'gain_loss_ratio'
+    """
+    gains = returns[returns > 0]
+    losses = returns[returns < 0]
+    
+    avg_gain = gains.mean() if len(gains) > 0 else 0
+    avg_loss = losses.mean() if len(losses) > 0 else 0
+    
+    # Gain/loss ratio (how much you make on wins vs lose on losses)
+    gain_loss_ratio = abs(avg_gain / avg_loss) if avg_loss != 0 else np.inf
+    
+    return {
+        'avg_gain': avg_gain,
+        'avg_loss': avg_loss,
+        'gain_loss_ratio': gain_loss_ratio
+    }

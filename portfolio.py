@@ -352,7 +352,59 @@ class Portfolio:
         print(f"  Effective # of Stocks:   {effective_n:>10.1f}")
         
         
-
+    def display_behaviour_analysis(self):
+        
+        
+        print("\n" + "=" * 60)
+        print("BEHAVIOUR ANALYSIS")
+        print("=" * 60)
+        
+        from risk_metrics import (
+            calculate_rolling_cagr,
+            calculate_win_rate,
+            calculate_avg_gain_loss
+        )
+        
+        # Calculate metrics
+        win_rate = calculate_win_rate(self.portfolio_returns)
+        gain_loss = calculate_avg_gain_loss(self.portfolio_returns)
+        
+        # Also calculate for benchmark
+        benchmark_win_rate = calculate_win_rate(self.benchmark_returns)
+        benchmark_gain_loss = calculate_avg_gain_loss(self.benchmark_returns)
+        
+        # Only calculate rolling CAGR if we have enough data
+        n_days = len(self.portfolio_returns)
+        if n_days >= 252:
+            rolling_cagr = calculate_rolling_cagr(self.portfolio_returns)
+            rolling_cagr_clean = rolling_cagr.dropna()  # Drop NaN values
+            
+            print("\nReturn Consistency:")
+            if len(rolling_cagr_clean) > 0:
+                print(f"  Current 1Y CAGR:       {rolling_cagr_clean.iloc[-1]:>10.2%}")
+                print(f"  Rolling CAGR Std Dev:  {rolling_cagr_clean.std():>10.2%}")
+                self.rolling_cagr = rolling_cagr  # Store for plotting
+            else:
+                print(f"  Insufficient data for rolling CAGR (need 252 days, have {n_days})")
+        else:
+            print(f"\nReturn Consistency:")
+            print(f"  Insufficient data for rolling CAGR (need 252 days, have {n_days})")
+        
+        print("\nWin Rate:")
+        print(f"  Portfolio:             {win_rate:>10.1%}")
+        print(f"  Benchmark:             {benchmark_win_rate:>10.1%}")
+        
+        print("\nAverage Gain vs Loss:")
+        print(f"  Avg Daily Gain:        {gain_loss['avg_gain']:>10.2%}")
+        print(f"  Avg Daily Loss:        {gain_loss['avg_loss']:>10.2%}")
+        print(f"  Gain/Loss Ratio:       {gain_loss['gain_loss_ratio']:>10.2f}x")
+        
+        print(f"\n  Benchmark Gain:        {benchmark_gain_loss['avg_gain']:>10.2%}")
+        print(f"  Benchmark Loss:        {benchmark_gain_loss['avg_loss']:>10.2%}")
+        print(f"  Benchmark Ratio:       {benchmark_gain_loss['gain_loss_ratio']:>10.2f}x")
+        
+        
+        print("=" * 60)
 
     def analyze(self, period='1y', risk_free_rate=0.065):
         
@@ -385,6 +437,9 @@ class Portfolio:
         
         print()
         self.display_portfolio_structure()
+
+        print()
+        self.display_behaviour_analysis()
         return metrics
 
 
