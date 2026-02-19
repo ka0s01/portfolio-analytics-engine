@@ -5,3 +5,5 @@ project_context.md
 architecture.md
 task.md
 learnings.md
+.gitignore
+temp_portfolio.csv

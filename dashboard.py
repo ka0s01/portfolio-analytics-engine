@@ -42,19 +42,99 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # Title
-st.title("Portfolio Analyzer Dashboard")
+st.title(" Portfolio Analyzer Dashboard")
 st.markdown("---")
 
 # Sidebar
 with st.sidebar:
     st.header("⚙️ Configuration")
     
-    # File upload
-    uploaded_file = st.file_uploader(
-        "📁 Upload Portfolio CSV",
-        type=['csv'],
-        help="CSV file with columns: Ticker, Amount"
+    # Portfolio input method selector
+    input_method = st.radio(
+        "📁 Portfolio Input Method",
+        ["Edit Sample Portfolio", "Upload CSV File"],
+        help="Choose how to input your portfolio"
     )
+    
+    st.markdown("---")
+    
+    if input_method == "Edit Sample Portfolio":
+        st.subheader("📝 Edit Your Portfolio")
+        
+        # Create sample portfolio
+        sample_data = pd.DataFrame({
+            'Ticker': ['RELIANCE.NS', 'TCS.NS', 'INFY.NS', 'HDFCBANK.NS', 'ITC.NS'],
+            'Amount': [10000.0, 15000.0, 12000.0, 8000.0, 5000.0]
+        })
+        
+        st.info("💡 Edit the table below. Click cells to modify. Add/remove rows as needed.")
+        
+        # Editable dataframe
+        edited_df = st.data_editor(
+            sample_data,
+            num_rows="dynamic",  # Allow adding/removing rows
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Ticker": st.column_config.TextColumn(
+                    "Stock Ticker",
+                    help="Stock symbol (e.g., RELIANCE.NS for NSE stocks)",
+                    required=True,
+                ),
+                "Amount": st.column_config.NumberColumn(
+                    "Investment Amount",
+                    help="Amount invested in this stock",
+                    min_value=0.0,
+                    format="₹%.2f",
+                    required=True,
+                )
+            }
+        )
+        
+        # Validation
+        if len(edited_df) == 0:
+            st.error("⚠️ Add at least one stock to your portfolio")
+        elif edited_df['Ticker'].isna().any() or edited_df['Amount'].isna().any():
+            st.error("⚠️ Fill in all ticker and amount fields")
+        elif (edited_df['Amount'] <= 0).any():
+            st.error("⚠️ All amounts must be greater than 0")
+        else:
+            # Show portfolio summary
+            total = edited_df['Amount'].sum()
+            st.success(f"✅ Portfolio total: ₹{total:,.2f}")
+            
+            with st.expander("📊 Weight Distribution"):
+                weights_df = edited_df.copy()
+                weights_df['Weight'] = (weights_df['Amount'] / total * 100).round(2)
+                weights_df['Weight'] = weights_df['Weight'].astype(str) + '%'
+                st.dataframe(weights_df[['Ticker', 'Weight']], hide_index=True, use_container_width=True)
+        
+        uploaded_file = None  # Not using file upload in this mode
+        
+    else:  # Upload CSV File
+        st.subheader("📁 Upload Portfolio")
+        
+        # File upload
+        uploaded_file = st.file_uploader(
+            "Upload Portfolio CSV",
+            type=['csv'],
+            help="CSV file with columns: Ticker, Amount"
+        )
+        
+        if uploaded_file is None:
+            st.info("👆 Upload a CSV file to get started")
+            st.markdown("""
+            **CSV Format:**
+            ```
+            Ticker,Amount
+            RELIANCE.NS,10000
+            TCS.NS,15000
+            ```
+            """)
+        
+        edited_df = None  # Not using editor in this mode
+    
+    st.markdown("---")
     
     # Benchmark selector
     benchmark = st.selectbox(
@@ -88,15 +168,30 @@ with st.sidebar:
     run_analysis = st.button("🚀 Run Analysis", type="primary", use_container_width=True)
 
 # Main content
-if uploaded_file is not None:
+if uploaded_file is not None or (input_method == "Edit Sample Portfolio" and edited_df is not None and len(edited_df) > 0):
     if run_analysis:
         try:
-            # Save uploaded file temporarily
-            with open("temp_portfolio.csv", "wb") as f:
-                f.write(uploaded_file.getbuffer())
+            # Prepare portfolio data based on input method
+            if input_method == "Edit Sample Portfolio":
+                # Validate edited dataframe
+                if edited_df['Ticker'].isna().any() or edited_df['Amount'].isna().any():
+                    st.error("❌ Please fill in all ticker and amount fields")
+                    st.stop()
+                if (edited_df['Amount'] <= 0).any():
+                    st.error("❌ All amounts must be greater than 0")
+                    st.stop()
+                
+                # Save edited dataframe as temporary CSV
+                edited_df.to_csv("temp_portfolio.csv", index=False)
+                portfolio_source = "edited portfolio"
+            else:
+                # Save uploaded file temporarily
+                with open("temp_portfolio.csv", "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+                portfolio_source = "uploaded file"
             
             # Initialize portfolio
-            with st.spinner("Loading portfolio..."):
+            with st.spinner(f"Loading {portfolio_source}..."):
                 portfolio = Portfolio.from_csv("temp_portfolio.csv")
                 portfolio.benchmark_ticker = benchmark
             
@@ -539,7 +634,7 @@ if 'analysis_complete' in st.session_state and st.session_state['analysis_comple
     # =====================================================================
     # EXPORT
     # =====================================================================
-    st.header(" Export Results")
+    st.header("💾 Export Results")
     
     # Prepare export data
     export_data = {
@@ -594,23 +689,44 @@ if 'analysis_complete' in st.session_state and st.session_state['analysis_comple
 
 else:
     # Welcome screen
-    st.info("👈 Upload a portfolio CSV file and configure settings in the sidebar to get started.")
+    st.info("👈 Edit the sample portfolio or upload your own CSV file in the sidebar to get started.")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        ### 📝 Option 1: Edit Sample Portfolio
+        
+        1. Select "Edit Sample Portfolio" in sidebar
+        2. Modify the table directly:
+           - Change tickers (e.g., RELIANCE.NS)
+           - Update investment amounts
+           - Add/remove rows
+        3. Configure analysis settings
+        4. Click **Run Analysis**
+        
+        
+        """)
+    
+    with col2:
+        st.markdown("""
+        ### 📁 Option 2: Upload CSV File
+        
+        1. Select "Upload CSV File" in sidebar
+        2. Upload a file with format:
+        ```
+        Ticker,Amount
+        RELIANCE.NS,10000
+        TCS.NS,15000
+        ```
+        3. Configure analysis settings
+        4. Click **Run Analysis**
+        
+        """)
+    
+    st.markdown("---")
     
     st.markdown("""
-    ### CSV File Format
-    
-    Your CSV file should have two columns:
-    - **Ticker**: Stock ticker symbol (e.g., RELIANCE.NS for NSE stocks)
-    - **Amount**: Investment amount in INR
-    
-    Example:
-    ```
-    Ticker,Amount
-    RELIANCE.NS,10000
-    TCS.NS,15000
-    INFY.NS,12000
-    ```
-    
     ### What This Dashboard Provides
     
     1. **Performance Summary** - Key metrics at a glance
@@ -618,6 +734,9 @@ else:
     3. **Risk Quality** - Risk-adjusted performance evaluation
     4. **Portfolio Structure** - Contribution and diversification analysis
     5. **Behaviour Consistency** - Win rate and consistency metrics
+    6. **Export Results** - Download complete analysis as JSON
     
-    Click **Run Analysis** after uploading your portfolio file!
+    ### Purpose
+    
+    This tool is designed for **testing portfolio strategies**, not tracking personal P&L. It shows how an allocation would have performed, assuming all stocks were held for the entire period with fixed weights.
     """)
