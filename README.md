@@ -20,10 +20,6 @@ The difference:
 - **Strategy Testing** ✅ - "A portfolio of 40% RELIANCE, 30% TCS, 30% INFY returned 18% with 22% volatility over the past year"
 - **Personal P&L** ❌ - "I bought RELIANCE in March, TCS in June, and INFY in September. What's my actual return accounting for when I bought each stock?"
 
-This tool does the first, not the second. It treats all stocks as if held for the entire analysis period with fixed weights, which is essential for evaluating allocation strategies but doesn't match real-world staggered purchases.
-
-Think of it as a **health checkup for your portfolio strategy** - it tells you how the allocation behaves, what's working, what's not, and where your risks lie.
-
 
 ## 📸 Dashboard Preview
 <img width="1909" height="931" alt="image" src="https://github.com/user-attachments/assets/67011614-1493-4513-9d68-2af3f9d25b21" />
