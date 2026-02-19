@@ -165,6 +165,8 @@ class Portfolio:
         returns_df = pd.DataFrame()
         for ticker in self.tickers:
             returns_df[ticker] = calculate_returns(aligned_df[ticker])
+
+        self.stock_returns_df = returns_df
         
         # Calculate weighted portfolio returns
         portfolio_returns = (returns_df * self.weights).sum(axis=1)
@@ -311,9 +313,48 @@ class Portfolio:
         print(f"  Market:        {market_downside:>10.2%}")
     
         print("=" * 60)
-    
+    def display_portfolio_structure(self):
+        
+        print("\n" + "=" * 60)
+        print("PORTFOLIO STRUCTURE")
+        print("=" * 60)
+        
+        from portfolio_metrics import (
+            total_contribution_by_stock,
+            identify_top_contributors,
+            calculate_concentration,
+            calculate_effective_n_stocks
+        )
+        
+        # Calculate metrics
+        contributions = total_contribution_by_stock(self.stock_returns_df, self.weights)
+        top_bottom = identify_top_contributors(self.stock_returns_df, self.weights)
+        concentration = calculate_concentration(self.weights)
+        effective_n = calculate_effective_n_stocks(self.weights)
+        
+        # Display contribution by stock
+        print("\nReturn Contribution by Stock:")
+        print("-" * 60)
+        for ticker, contrib in contributions.sort_values(ascending=False).items():
+            print(f"  {ticker:<20} {contrib:>10.2%}")
+        
+        # Display top/bottom
+        print("\n" + "-" * 60)
+        print(f"\nLargest Contributor:  {top_bottom['top_contributor']:<15} "
+            f"{top_bottom['top_contributor_value']:>10.2%}")
+        print(f"Largest Dragger:      {top_bottom['top_dragger']:<15} "
+            f"{top_bottom['top_dragger_value']:>10.2%}")
+        
+        # Display diversification metrics
+        print("\nDiversification Metrics:")
+        print("-" * 60)
+        print(f"  Max Concentration:       {concentration:>10.1%}")
+        print(f"  Effective # of Stocks:   {effective_n:>10.1f}")
+        
+        
+
+
     def analyze(self, period='1y', risk_free_rate=0.065):
-        """Run complete portfolio analysis with data validation."""
         
         # Download data
         self.download_data(period=period)
@@ -342,6 +383,8 @@ class Portfolio:
         print()
         self.display_risk_comparison()
         
+        print()
+        self.display_portfolio_structure()
         return metrics
 
 
