@@ -3,6 +3,7 @@ import numpy as np
 from data_loader import *
 from returns_calc import *
 from risk_metrics import *
+from market_metrics import *
 
 
 class Portfolio:
@@ -216,7 +217,25 @@ class Portfolio:
         }
         
         return metrics
-    
+    def display_market_comparison(self):
+        if self.benchmark_returns is None:
+            print("No benchmark Data found")
+            return
+        print("\n" + "=" * 60)
+        print("MARKET COMPARISON")
+        print("=" * 60)
+        excess_ret = calculate_excess_returns(self.portfolio_returns,self.benchmark_returns)
+        annualized_excess_ret = annualize_excess_returns(self.portfolio_returns,self.benchmark_returns)
+        te = tracking_error(excess_ret)
+        ir = calculate_information_ratio(self.portfolio_returns,self.benchmark_returns)
+        beta = calculate_beta(self.portfolio_returns,self.benchmark_returns)
+        
+        print(f"\nAnnualized Excess Return: {annualized_excess_ret:>10.2%}")
+        print(f"Tracking Error:           {te:>10.2%}")
+        print(f"Information Ratio:        {ir:>10.3f}")
+        print(f"Beta:                     {beta:>10.3f}")
+
+
     
     def display_results(self, metrics):
         print("=" * 60)
@@ -239,23 +258,6 @@ class Portfolio:
         print(f"  Sortino Ratio:      {metrics['sortino_ratio']:>10.3f}")
         print("=" * 60)
         
-        print("\nRisk Assessment:")
-        if metrics['sharpe_ratio'] > 1.5:
-            print("  ✓ Excellent risk-adjusted returns (Sharpe > 1.5)")
-        elif metrics['sharpe_ratio'] > 1.0:
-            print("  ✓ Good risk-adjusted returns (Sharpe > 1.0)")
-        elif metrics['sharpe_ratio'] > 0:
-            print("  ⚠ Positive returns but high risk for the gain")
-        else:
-            print("  ✗ Returns below risk-free rate")
-        
-        if abs(metrics['max_drawdown']) > 0.30:
-            print("  ⚠ High maximum drawdown (>30%) - very volatile")
-        elif abs(metrics['max_drawdown']) > 0.20:
-            print("  ⚠ Moderate maximum drawdown (20-30%)")
-        else:
-            print("  ✓ Acceptable maximum drawdown (<20%)")
-        
         print()
     
     
@@ -275,10 +277,15 @@ class Portfolio:
         # Calculate metrics
         print("\nCalculating risk metrics...")
         metrics = self.get_metrics(risk_free_rate)
-        
+
         # Display results
         print()
         self.display_results(metrics)
+
+        #calculate marketmetrics
+        print("\nCalculating market metrics...")
+        print()
+        self.display_market_comparison()
         
         return metrics
 
